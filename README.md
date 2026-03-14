@@ -7,7 +7,10 @@ TaskBoard é um sistema de gerenciamento de tarefas inspirado em quadros tipo Tr
 
 ## Estrutura do projeto
 taskboard/
-├── Backend → Código do servidor Node.js + Express
-├── Frontend → Interface visual em HTML, CSS e JavaScript
-└── database → Banco de dados SQLite
+├── Backend → Código do servidor Node.js + Express  
+
+├── Frontend → Interface visual em HTML, CSS e JavaScript  
+
+└── database → Banco de dados SQLite  
+
 
