@@ -14,4 +14,4 @@ taskboard/
 ## Aluno
 | Nome         | RA        |
 |--------------|-----------|
-| Thales Vargas | 12345678 |
+| Thales | 2402012 |
