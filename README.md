@@ -18,4 +18,9 @@ taskboard/
 
 
 ## Dashboard
-<a href="https://trello.com/b/qmczjMd6/board-projeto-taskboard">Clique aqui</a>
+Para acessar o dashboard <a href="https://trello.com/b/qmczjMd6/board-projeto-taskboard">Clique aqui</a>
+
+## Ferramentas utilizadas
+VSCode
+Node.js
+SQLite Studio
