@@ -11,4 +11,4 @@ taskboard/
 ├── Frontend → Interface visual em HTML, CSS e JavaScript  
 └── database → Banco de dados SQLite  
 
-
+## <table>
