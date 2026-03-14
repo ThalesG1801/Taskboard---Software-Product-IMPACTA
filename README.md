@@ -15,3 +15,7 @@ taskboard/
 | Nome         | RA        |
 |--------------|-----------|
 | Thales | 2402012 |
+
+
+## Dashboard
+<a href="https://trello.com/b/qmczjMd6/board-projeto-taskboard">Clique aqui</a>
