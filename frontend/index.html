@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskBoard - AC1</title>
+    <style>
+        body { font-family: Arial; margin: 30px; }
+        h1 { color: #333; }
+        .tarefa { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
+        button { margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>TaskBoard</h1>
+
+    <h2>Criar Tarefa</h2>
+    <form id="formTarefa">
+        <input type="text" id="titulo" placeholder="Título" required>
+        <input type="text" id="descricao" placeholder="Descrição" required>
+        <input type="number" id="coluna_id" placeholder="ID da Coluna" value="1" required>
+        <button type="submit">Criar</button>
+    </form>
+
+    <h2>Tarefas</h2>
+    <div id="tarefas"></div>
+
+    <script>
+        const form = document.getElementById("formTarefa");
+        const tarefasDiv = document.getElementById("tarefas");
+
+        async function listarTarefas() {
+            const res = await fetch("http://localhost:3000/tarefas");
+            const tarefas = await res.json();
+
+            tarefasDiv.innerHTML = "";
+            tarefas.forEach(t => {
+                const div = document.createElement("div");
+                div.className = "tarefa";
+                div.innerHTML = `
+                    <strong>${t.titulo}</strong> - ${t.descricao} (Coluna ${t.coluna_id})
+                    <button onclick="deletarTarefa(${t.id})">Deletar</button>
+                `;
+                tarefasDiv.appendChild(div);
+            });
+        }
+
+        async function deletarTarefa(id) {
+            await fetch(`http://localhost:3000/tarefas/${id}`, { method: "DELETE" });
+            listarTarefas();
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById("titulo").value;
+            const descricao = document.getElementById("descricao").value;
+            const coluna_id = parseInt(document.getElementById("coluna_id").value);
+
+            await fetch("http://localhost:3000/tarefas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ titulo, descricao, coluna_id })
+            });
+
+            form.reset();
+            listarTarefas();
+        });
+
+        listarTarefas();
+    </script>
+</body>
+</html>
