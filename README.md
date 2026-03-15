@@ -23,4 +23,5 @@ Para acessar o dashboard <a href="https://trello.com/b/qmczjMd6/board-projeto-ta
 ## Ferramentas utilizadas
 VSCode  
 Node.js  
-SQLite Studio  
+MariaDB
+
