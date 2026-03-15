@@ -1,11 +1,14 @@
-const sqlite3 = require("sqlite3");
-const { open } = require("sqlite");
+const mysql = require("mysql2/promise");
 
-async function connect() {
-    return open({
-        filename: "../database/taskboard.db",
-        driver: sqlite3.Database
-    });
-}
 
-module.exports = connect;
+const pool = mysql.createPool({
+    host: "localhost",      
+    user: "root",            
+    password: "SUA_SENHA",  
+    database: "taskboard",   
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+module.exports = pool;
