@@ -4,16 +4,104 @@
     <meta charset="UTF-8">
     <title>TaskBoard</title>
     <style>
-        body { font-family: Arial; margin: 30px; }
-        h1 { color: #333; }
-        .tarefa { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
-        button { margin-left: 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f6fa;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background: #2f3640;
+            color: white;
+            margin: 0;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: #40739e;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #273c75;
+        }
+
+        .board {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .coluna {
+            width: 250px;
+            background: #dcdde1;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .coluna h3 {
+            text-align: center;
+        }
+
+        .tarefa {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: 0.2s;
+        }
+
+        .tarefa:hover {
+            transform: scale(1.02);
+        }
+
+        .tarefa:active {
+            opacity: 0.6;
+        }
+
+        div[id^="coluna-"] {
+            min-height: 300px;       
+            min-width: 200px;
+            padding: 10px;
+            background: #f4f4f4;
+            border: 2px dashed #ccc;  
+        }
+        
+        div[id^="coluna-"]:hover {
+            background: #e0e0e0;
+        }
     </style>
 </head>
 <body>
     <h1>TaskBoard</h1>
 
-    <h2>Criar Tarefa</h2>
+    <h2 style="text-align: center;">Criar Tarefa</h2>
     <form id="formTarefa">
         <input type="text" id="titulo" placeholder="Título" required>
         <input type="text" id="descricao" placeholder="Descrição" required>
@@ -21,26 +109,90 @@
         <button type="submit">Criar</button>
     </form>
 
-    <h2>Tarefas</h2>
-    <div id="tarefas"></div>
+
+
+    <div class="board">
+    <div class="coluna">
+        <h3>A Fazer</h3>
+        <div id="coluna-1"></div>
+    </div>
+
+    <div class="coluna">
+        <h3>Em Progresso</h3>
+        <div id="coluna-2"></div>
+    </div>
+
+    <div class="coluna">
+        <h3>Concluído</h3>
+        <div id="coluna-3"></div>
+    </div>
+</div>
 
     <script>
         const form = document.getElementById("formTarefa");
         const tarefasDiv = document.getElementById("tarefas");
 
+
         async function listarTarefas() {
             const res = await fetch("http://localhost:3000/tarefas");
             const tarefas = await res.json();
 
-            tarefasDiv.innerHTML = "";
+            [1, 2, 3].forEach(colunaId => {
+                const coluna = document.getElementById(`coluna-${colunaId}`);
+
+                coluna.ondragover = function(e) {
+                    e.preventDefault(); 
+                };
+
+                coluna.ondrop = async (e) => {
+                    e.preventDefault();
+
+                    const id = e.dataTransfer.getData("id");
+
+                    await fetch(`http://localhost:3000/tarefas/${id}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            coluna_id: colunaId
+                        })
+                    });
+
+                    listarTarefas();
+                };
+            });
+
+            document.getElementById("coluna-1").innerHTML = "";
+            document.getElementById("coluna-2").innerHTML = "";
+            document.getElementById("coluna-3").innerHTML = "";
+
+
+
             tarefas.forEach(t => {
+                /*const div = document.createElement("div");
+                div.className = "tarefa";*/
+
                 const div = document.createElement("div");
+
+                div.ondragstart = (e) => {
+                    e.dataTransfer.setData("id", t.id);
+                };
                 div.className = "tarefa";
+                div.draggable = true; 
+
+                div.ondragstart = (e) => {
+                    e.dataTransfer.setData("id", t.id);
+                };
+
                 div.innerHTML = `
-                    <strong>${t.titulo}</strong> - ${t.descricao} (Coluna ${t.coluna_id})
-                    <button onclick="deletarTarefa(${t.id})">Deletar</button>
+                    <strong>${t.titulo}</strong><br>
+                    ${t.descricao}<br><br>
+                    <button onclick="editarTarefa(${t.id}, '${t.titulo}', '${t.descricao}')">✏️</button>
+                    <button onclick="deletarTarefa(${t.id})">🗑️</button>
                 `;
-                tarefasDiv.appendChild(div);
+
+                document.getElementById(`coluna-${t.coluna_id}`).appendChild(div);
             });
         }
 
@@ -63,9 +215,45 @@
 
             form.reset();
             listarTarefas();
+        });async function editarTarefa(id, tituloAtual, descricaoAtual) {
+                const novoTitulo = prompt("Novo título:", tituloAtual);
+                const novaDescricao = prompt("Nova descrição:", descricaoAtual);
+
+    if (!novoTitulo || !novaDescricao) return;
+
+    await fetch(`http://localhost:3000/tarefas/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            titulo: novoTitulo,
+            descricao: novaDescricao
+        })
+    });
+
+    listarTarefas();
+    }
+ 
+    async function moverTarefa(id, colunaAtual) {
+        let novaColuna = colunaAtual + 1;
+        if (novaColuna > 3) novaColuna = 1;
+
+        await fetch(`http://localhost:3000/tarefas/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                coluna_id: novaColuna
+            })
         });
 
-        listarTarefas();
+    listarTarefas();
+}
+
+    listarTarefas();
+        
     </script>
 </body>
 </html>
