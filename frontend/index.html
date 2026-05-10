@@ -105,6 +105,14 @@
     <form id="formTarefa">
         <input type="text" id="titulo" placeholder="Título" required>
         <input type="text" id="descricao" placeholder="Descrição" required>
+
+        <select id="prioridade">
+            <option value="Baixa">Baixa</option>
+            <option value="Média" selected>Média</option>
+            <option value="Alta">Alta</option>
+        </select>
+        <input type="date" id="prazo">
+
         <input type="number" id="coluna_id" placeholder="ID da Coluna" value="1" required>
         <button type="submit">Criar</button>
     </form>
@@ -185,9 +193,26 @@
                     e.dataTransfer.setData("id", t.id);
                 };
 
+                let corPrioridade = "";
+
+                if (t.prioridade === "Alta") corPrioridade = "#e84118";
+                else if (t.prioridade === "Média") corPrioridade = "#fbc531";
+                else corPrioridade = "#4cd137";
+
                 div.innerHTML = `
                     <strong>${t.titulo}</strong><br>
                     ${t.descricao}<br><br>
+
+                    <span style="
+                        background:${corPrioridade};
+                        color:white;
+                        padding:4px 8px;
+                        border-radius:6px;
+                        font-size:12px;
+                    ">${t.prioridade}</span><br><br>
+
+                   
+                    ${t.prazo ? t.prazo.split("T")[0] : "Sem prazo"}<br><br>
                     <button onclick="editarTarefa(${t.id}, '${t.titulo}', '${t.descricao}')">✏️</button>
                     <button onclick="deletarTarefa(${t.id})">🗑️</button>
                 `;
@@ -206,11 +231,19 @@
             const titulo = document.getElementById("titulo").value;
             const descricao = document.getElementById("descricao").value;
             const coluna_id = parseInt(document.getElementById("coluna_id").value);
+            const prioridade = document.getElementById("prioridade").value;
+            const prazo = document.getElementById("prazo").value;
 
             await fetch("http://localhost:3000/tarefas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ titulo, descricao, coluna_id })
+                body: JSON.stringify({
+                    titulo,
+                    descricao,
+                    coluna_id,
+                    prioridade,
+                    prazo
+                })
             });
 
             form.reset();
