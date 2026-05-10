@@ -15,10 +15,10 @@ app.get("/", (req, res) => {
 // Criar tarefa
 app.post("/tarefas", async (req, res) => {
     try {
-        const { titulo, descricao, coluna_id } = req.body;
+        const { titulo, descricao, coluna_id, prioridade, prazo } = req.body;
         await db.execute(
-            "INSERT INTO tarefas (titulo, descricao, coluna_id) VALUES (?, ?, ?)",
-            [titulo, descricao, coluna_id]
+            "INSERT INTO tarefas (titulo, descricao, coluna_id, prioridade, prazo) VALUES (?, ?, ?, ?, ?)",
+            [titulo, descricao, coluna_id, prioridade, prazo]
         );
         res.send("Tarefa criada com sucesso");
     } catch (err) {
@@ -54,10 +54,12 @@ app.delete("/tarefas/:id", async (req, res) => {
 app.put("/tarefas/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { titulo, descricao, coluna_id } = req.body;
+        const { titulo, descricao, coluna_id, prioridade, prazo } = req.body;
 
-        // Pega os dados atuais da tarefa
-        const [rows] = await db.execute("SELECT * FROM tarefas WHERE id = ?", [id]);
+        const [rows] = await db.execute(
+            "SELECT * FROM tarefas WHERE id = ?",
+            [id]
+        );
 
         if (rows.length === 0) {
             return res.status(404).send("Tarefa não encontrada");
@@ -65,17 +67,19 @@ app.put("/tarefas/:id", async (req, res) => {
 
         const tarefaAtual = rows[0];
 
-        // Usa os valores novos OU mantém os antigos
         const novoTitulo = titulo ?? tarefaAtual.titulo;
         const novaDescricao = descricao ?? tarefaAtual.descricao;
         const novaColuna = coluna_id ?? tarefaAtual.coluna_id;
+        const novaPrioridade = prioridade ?? tarefaAtual.prioridade;
+        const novoPrazo = prazo ?? tarefaAtual.prazo;
 
         await db.execute(
-            "UPDATE tarefas SET titulo = ?, descricao = ?, coluna_id = ? WHERE id = ?",
-            [novoTitulo, novaDescricao, novaColuna, id]
+            "UPDATE tarefas SET titulo = ?, descricao = ?, coluna_id = ?, prioridade = ?, prazo = ? WHERE id = ?",
+            [novoTitulo, novaDescricao, novaColuna, novaPrioridade, novoPrazo, id]
         );
 
         res.send("Tarefa atualizada com sucesso");
+
     } catch (err) {
         console.error(err);
         res.status(500).send("Erro ao atualizar tarefa");
