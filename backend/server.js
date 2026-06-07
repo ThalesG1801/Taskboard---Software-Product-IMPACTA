@@ -12,13 +12,88 @@ app.get("/", (req, res) => {
     res.send("API TaskBoard funcionando com MariaDB!");
 });
 
+//Listar boards
+app.get("/boards", async (req, res) => {
+    try {
+        const [boards] = await db.execute(
+            "SELECT * FROM boards ORDER BY id"
+        );
+
+        res.json(boards);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Erro ao buscar boards");
+    }
+});
+
+//Criar boards
+app.post("/boards", async (req, res) => {
+    try {
+        const { nome } = req.body;
+
+        await db.execute(
+            "INSERT INTO boards (nome) VALUES (?)",
+            [nome]
+        );
+
+        res.send("Board criado com sucesso");
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Erro ao criar board");
+    }
+});
+
+//Editar board
+app.put("/boards/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome } = req.body;
+
+        await db.execute(
+            "UPDATE boards SET nome = ? WHERE id = ?",
+            [nome, id]
+        );
+
+        res.send("Board atualizado com sucesso");
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Erro ao atualizar board");
+    }
+});
+
+//Excluir board
+app.delete("/boards/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await db.execute(
+            "DELETE FROM tarefas WHERE board_id = ?",
+            [id]
+        );
+
+        await db.execute(
+            "DELETE FROM boards WHERE id = ?",
+            [id]
+        );
+
+        res.send("Board removido com sucesso");
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Erro ao excluir board");
+    }
+});
+
 // Criar tarefa
 app.post("/tarefas", async (req, res) => {
     try {
-        const { titulo, descricao, coluna_id, prioridade, prazo } = req.body;
+        const {titulo, descricao, coluna_id, prioridade, prazo, board_id} = req.body;
         await db.execute(
-            "INSERT INTO tarefas (titulo, descricao, coluna_id, prioridade, prazo) VALUES (?, ?, ?, ?, ?)",
-            [titulo, descricao, coluna_id, prioridade, prazo]
+            "INSERT INTO tarefas (titulo, descricao, coluna_id, prioridade, prazo, board_id) VALUES (?, ?, ?, ?, ?, ?)",
+            [titulo, descricao, coluna_id, prioridade, prazo, board_id]
         );
         res.send("Tarefa criada com sucesso");
     } catch (err) {
@@ -30,8 +105,24 @@ app.post("/tarefas", async (req, res) => {
 // Listar tarefas
 app.get("/tarefas", async (req, res) => {
     try {
-        const [rows] = await db.execute("SELECT * FROM tarefas");
+
+        const board_id = req.query.board_id;
+
+        let rows;
+
+        if (board_id) {
+            [rows] = await db.execute(
+                "SELECT * FROM tarefas WHERE board_id = ?",
+                [board_id]
+            );
+        } else {
+            [rows] = await db.execute(
+                "SELECT * FROM tarefas"
+            );
+        }
+
         res.json(rows);
+
     } catch (err) {
         console.error(err);
         res.status(500).send("Erro ao listar tarefas");
